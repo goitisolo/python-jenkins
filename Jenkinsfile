@@ -12,17 +12,32 @@ pipeline {
 			 }
 		 }
 		stage('Test') {
+			 agent {
+ 				docker {
+				 image 'qnib/pytest'
+ 				}
+ 			}
+ 			steps {
+ 				sh 'py.test --verbose --junit-xml testreports/results.xml sources/test_calc.py'
+			 }
+ 			post {
+				 always {
+	 				junit 'test-reports/results.xml'
+ 				}
+ 			}
+ 		}
+stage('Deliver') {
  agent {
  docker {
- image 'qnib/pytest'
+ image 'cdrx/pyinstaller-linux:python2'
  }
  }
  steps {
- sh 'py.test --verbose --junit-xml testreports/results.xml sources/test_calc.py'
+ sh 'pyinstaller --onefile sources/add2vals.py'
  }
  post {
- always {
- junit 'test-reports/results.xml'
+ success {
+ archiveArtifacts 'dist/add2vals'
  }
  }
  }
